@@ -8,8 +8,19 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
   let noirFrame: FrameLocator
   let terminalJournal: Locator
 
+  async function ensureSidePanelOpen (icon: Locator) {
+
+    await icon.click()
+    const sidepanel = page.locator('.sidepanel')
+    try {
+      await expect(sidepanel).not.toHaveClass(/d-none/, { timeout: 5_000 })
+    } catch {
+      await icon.click()
+      await expect(sidepanel).not.toHaveClass(/d-none/, { timeout: 10_000 })
+    }
+  }
+
   test.beforeAll(async ({ browser }) => {
-    test.setTimeout(240_000)
 
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     terminalJournal = page.locator('[data-id="terminalJournal"]')
@@ -23,7 +34,7 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
     })
 
     // --- Create a new workspace from the "Simple Multiplier" Noir template --
-    await page.locator('#icon-panel div[plugin="filePanel"]').click()
+    await ensureSidePanelOpen(page.locator('#icon-panel div[plugin="filePanel"]'))
     const workspacesSelect = page.locator('[data-id="workspacesSelect"]')
     await expect(workspacesSelect).toBeVisible()
     await expect(workspacesSelect).not.toHaveAttribute('data-disabled', 'true')
@@ -45,15 +56,8 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
     const noirIcon = page.locator('#icon-panel div[plugin="noir-compiler"]')
     const filePanelIcon = page.locator('#icon-panel div[plugin="filePanel"]')
     noirFrame = page.frameLocator('#plugin-noir-compiler')
-    await noirIcon.click()
-    if (await page.locator('.sidepanel.d-none').count() > 0) {
-      await noirIcon.click()
-    }
-
-    await filePanelIcon.click()
-    if (await page.locator('.sidepanel.d-none').count() > 0) {
-      await filePanelIcon.click()
-    }
+    await ensureSidePanelOpen(noirIcon)
+    await ensureSidePanelOpen(filePanelIcon)
 
     // --- Open the generated circuit file -------------------------------------
     const circuitTreeItem = page.locator('[data-id="treeViewLitreeViewItemsrc/main.nr"]')
@@ -62,10 +66,7 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
     await expect(page.locator('[data-path="src/main.nr"]')).toBeVisible()
 
     // --- Switch back to the noir-compiler panel to compile -------------------
-    await noirIcon.click()
-    if (await page.locator('.sidepanel.d-none').count() > 0) {
-      await noirIcon.click()
-    }
+    await ensureSidePanelOpen(noirIcon)
 
     // --- Compile the circuit via the in-panel compile button ----------------
     // Show the terminal so later steps can assert on proof-generation output.
@@ -75,17 +76,14 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
     await expect(compileBtn).toBeEnabled({ timeout: 15_000 })
     await compileBtn.click()
     await expect(noirFrame.locator('#noir_generate_proof')).toBeVisible({ timeout: 90_000 })
-    await page.locator('#icon-panel div[plugin="filePanel"]').click()
+    await ensureSidePanelOpen(filePanelIcon)
     await page.locator('[data-id="treeViewLitreeViewItemProver.toml"]').click()
     await expect(page.locator('[data-path="Prover.toml"]')).toBeVisible()
     await page.evaluate(() => {
       (document.getElementById('editorView') as any).setCurrentContent('a = "20"\nb = "40"\n')
     })
 
-    await noirIcon.click()
-    if (await page.locator('.sidepanel.d-none').count() > 0) {
-      await noirIcon.click()
-    }
+    await ensureSidePanelOpen(noirIcon)
   })
 
   test.afterAll(async () => {

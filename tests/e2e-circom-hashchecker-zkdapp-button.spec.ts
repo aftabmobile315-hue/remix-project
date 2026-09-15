@@ -12,7 +12,6 @@ test.describe.serial('Circom hashchecker: trusted setup, zk dapp button, and zkV
   let poolSessionId: string | null = null
 
   test.beforeAll(async ({ browser }) => {
-    test.setTimeout(300_000)
 
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     terminalJournal = page.locator('[data-id="terminalJournal"]')
@@ -33,7 +32,7 @@ test.describe.serial('Circom hashchecker: trusted setup, zk dapp button, and zkV
       await page.locator('[data-id="login-button"]').click()
       await page.locator('[data-id="loginModalE2EPoolButton"]').click()
       await expect(page.locator('[data-id="user-menu-compact"]').first()).toBeVisible({ timeout: 30_000 })
-      await page.locator('[data-id="verticalIconsKindremixaiassistant"]').click()
+      await openAiAssistantPanel()
       await page.locator('[data-id="ai-model-selector-btn"]').click()
       await page.locator('[data-id="ai-model-search"]').fill('haiku')
       await page.locator('[data-id^="ai-model-"][data-locked="false"]').first().click()
@@ -106,6 +105,18 @@ test.describe.serial('Circom hashchecker: trusted setup, zk dapp button, and zkV
       await releaseAccount(poolSessionId)
     }
   })
+
+  async function openAiAssistantPanel () {
+    const modelSelectorBtn = page.locator('[data-id="ai-model-selector-btn"]')
+
+    await page.locator('[data-id="verticalIconsKindremixaiassistant"]').click()
+    try {
+      await expect(modelSelectorBtn).toBeVisible({ timeout: 5_000 })
+    } catch {
+      await page.locator('[data-id="verticalIconsKindremixaiassistant"]').click()
+      await expect(modelSelectorBtn).toBeVisible({ timeout: 10_000 })
+    }
+  }
 
   async function runTrustedSetupAndWait () {
     const runSetupBtn = circuitFrame.locator('[data-id="runSetupBtn"]')
