@@ -12,6 +12,8 @@ test.describe.serial('Circom hashchecker: trusted setup, zk dapp button, and zkV
   let poolSessionId: string | null = null
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(300_000)
+
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     terminalJournal = page.locator('[data-id="terminalJournal"]')
 

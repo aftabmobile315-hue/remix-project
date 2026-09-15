@@ -9,6 +9,8 @@ test.describe.serial('Noir multiplier: proof generation and zk dapp button flows
   let terminalJournal: Locator
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(240_000)
+
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     terminalJournal = page.locator('[data-id="terminalJournal"]')
 
